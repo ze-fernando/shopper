@@ -1,0 +1,25 @@
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Type {
+    WATER
+    GAS
+}
+
+
+model Measure {
+    uuid           String   @id @default(uuid()) @db.Uuid
+    datetime       DateTime @map("datetime")
+    type           Type
+    value  Int
+    has_confirmed  Boolean
+    image_url      String
+    costumer_code  String
+}
