@@ -4,8 +4,8 @@ import isDoubleReport from "../utlis/validBody";
 import sendImg from "../LLM/gen-ai";
 import { IRequest, IResponse } from "../interfaces/Iupload";
 
-export default async function uploadController(req: Request, res: Response){
 
+export default async function uploadController(req: Request, res: Response) {
     if (!req.body) {
         return res.status(400).json({
             error_code: "INVALID_DATA",
@@ -15,21 +15,21 @@ export default async function uploadController(req: Request, res: Response){
 
     const { image, costumer_code, measure_datetime, measure_type } = req.body;
 
-    if(!image || !costumer_code ||
-        !measure_datetime || !measure_type){
-            res.status(400).json({
-                error_code: "INVALID_DATA",
-                error_description: "Os dados fornecidos no corpo da requisição são inválidos"
-            });
-        }
+    if (!image || !costumer_code || !measure_datetime || !measure_type) {
+        return res.status(400).json({
+            error_code: "INVALID_DATA",
+            error_description: "Os dados fornecidos no corpo da requisição são inválidos"
+        });
+    }
 
-        if(await isDoubleReport(measure_datetime)){
-            res.status(409).json({
-                error_code: "DOUBLE REPORT",
-                error_description: "Leitura do mês já realizada"
-            });
-        }
+    if (await isDoubleReport(measure_datetime)) {
+        return res.status(409).json({
+            error_code: "DOUBLE REPORT",
+            error_description: "Leitura do mês já realizada"
+        });
+    }
 
+    try {
         const measure: IRequest = {
             image: image,
             customer_code: costumer_code,
@@ -40,5 +40,11 @@ export default async function uploadController(req: Request, res: Response){
         const response: IResponse = await sendImg(measure, image);
 
         return res.status(200).json(response);
-}
 
+    } catch (error) {
+        return res.status(500).json({
+            error_code: "UPLOAD_ERROR",
+            error_description: `Ocorreu um erro ao processar a leitura: ${error}`
+        });
+    }
+}
