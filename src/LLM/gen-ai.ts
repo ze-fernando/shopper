@@ -1,29 +1,25 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-import { GoogleAIFileManager } from "@google/generative-ai/server";
+
 import { v4 as uuidv4 } from 'uuid';
 
 import { IResponse, IRequest } from "../interfaces/Iupload";
 import prisma from '../dbConfig/prisma';
+import { fileGemini, fileManagerAI } from "./fileManager";
 
-//const measureDB: Measure;
+export default async function sendImg(measure: IRequest, image64: string): Promise<IResponse>{    
+    try {        
+        const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
 
-const gemini = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
-const fileGemini = new GoogleAIFileManager(process.env.GEMINI_API_KEY as string);
-const model = gemini.getGenerativeModel({
-    model: "gemini-1.5-pro",
-});
+        const { imagePath } = await fileManagerAI(image64);
 
-export default async function sendImg(measure: IRequest, imageName: string): Promise<IResponse>{    
-    try {
-
-        const measureUuid: string = uuidv4();
-
-
-        const response = await fileGemini.uploadFile(imageName, {
-            mimeType: "image/jpeg",
-            displayName: "Meter reading image",
+        const model = gemini.getGenerativeModel({
+            model: "gemini-1.5-pro",
         });
-
+        
+        const response = await fileGemini.uploadFile(imagePath, {
+            mimeType: "image/jpeg"
+        });
+        
         const result = await model.generateContent([
             {
                 fileData: {
@@ -31,21 +27,24 @@ export default async function sendImg(measure: IRequest, imageName: string): Pro
                     fileUri: response.file.uri
                 }
             },
-            { text: "mostre-me um numero de 0 a 10" },
+            { text: "mostre-me um numero de 0 a 10" }, //Return the consumption number of a reading
         ]);
 
         if (!result.response || !result.response.text) {
             throw new Error("Invalid response from Gemini API.");
         }
 
-        const meterReading = result.response.text();
+        const meterReading = result.response.text().match(/\d+/g);;
+
+		const number = meterReading ? Number(meterReading) : 0;
+
 
         const newMeasure = await prisma.measure.create({
             data: {
-                uuid: measureUuid,
+                uuid: uuidv4(),
                 datetime: new Date(measure.measure_datetime),
                 type: measure.measure_type,
-                value: parseInt(meterReading),
+                value: number,
                 has_confirmed: false,
                 image_url: response.file.uri,
                 costumer_code: measure.customer_code
@@ -54,7 +53,7 @@ export default async function sendImg(measure: IRequest, imageName: string): Pro
 
         return {
             image_url: response.file.uri,
-            measure_value: parseInt(meterReading),
+            measure_value: number,
             measure_uuid: newMeasure.uuid
         };
 
