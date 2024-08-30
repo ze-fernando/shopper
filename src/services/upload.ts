@@ -2,6 +2,8 @@ import { Router, Request, Response } from "express";
 import * as fs from 'fs';
 
 import isDoubleReport from "../utlis/validBody";
+import sendImg from "../LLM/gemini";
+import { IRequest, IResponse } from "../interfaces/Iupload";
 
 export async function uploadService(req: Request, res: Response){
 
@@ -29,12 +31,21 @@ export async function uploadService(req: Request, res: Response){
             });
         }
 
+        const measure: IRequest = {
+            image: image,
+            customer_code: costumer_code,
+            measure_datetime: measure_datetime,
+            measure_type: measure_type
+        };
+
         const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
 
         const imageBuffer = Buffer.from(base64Data, 'base64');
-        const imagePath = `uploads/${Date.now()}temp.jpg`; 
+        const imagePath = `uploads/${Date.now()}.jpg`; 
         await fs.writeFileSync(imagePath, imageBuffer);
 
-        return res.status(200).json({message: 'tudo joiaa'});
+        const response: IResponse = await sendImg(measure, imagePath);
+
+        return res.status(200).json(response);
 }
 

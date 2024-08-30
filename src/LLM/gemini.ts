@@ -15,7 +15,7 @@ const model = gemini.getGenerativeModel({
     model: "gemini-1.5-pro",
 });
 
-export default async (measure: IRequest, imageName: string): Promise<IResponse> =>{    
+export default async function sendImg(measure: IRequest, imageName: string): Promise<IResponse>{    
     try {
 
         const measureUuid: string = uuidv4();
@@ -33,7 +33,7 @@ export default async (measure: IRequest, imageName: string): Promise<IResponse> 
                     fileUri: response.file.uri
                 }
             },
-            { text: "Extract the meter reading from this image and return the value as a number." },
+            { text: "mostre-me um numero de 0 a 10" },
         ]);
 
         if (!result.response || !result.response.text) {
