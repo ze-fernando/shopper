@@ -1,5 +1,6 @@
 import express from 'express';
-import { uploadService } from './services/upload';
+import { uploadService } from './controllers/upload';
+import { route } from './routes/imageRouter';
 
 const app = express();
 
@@ -9,7 +10,7 @@ app.use(express.json({ limit: '50mb' }));
 
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
 
-app.post('/upload', uploadService);
+app.use(route);
 
 app.listen(PORT, () =>{
     console.log(`Server is running on ${PORT}`);

@@ -5,7 +5,7 @@ import isDoubleReport from "../utlis/validBody";
 import sendImg from "../LLM/gemini";
 import { IRequest, IResponse } from "../interfaces/Iupload";
 
-export async function uploadService(req: Request, res: Response){
+export default async function uploadController(req: Request, res: Response){
 
     if (!req.body) {
         return res.status(400).json({
