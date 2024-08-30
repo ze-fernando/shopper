@@ -1,5 +1,4 @@
 import express from 'express';
-import { uploadService } from './controllers/upload';
 import { route } from './routes/imageRouter';
 
 const app = express();
