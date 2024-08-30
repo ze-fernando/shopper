@@ -15,8 +15,8 @@ enum Type {
 
 
 model Measure {
-    uuid           String   @id @default(uuid()) @db.Uuid
-    datetime       DateTime @map("datetime")
+    uuid           String   @id @default(uuid()) @db.Uuid @unique
+    datetime       DateTime @map("datetime") @unique
     type           Type
     value  Int
     has_confirmed  Boolean
