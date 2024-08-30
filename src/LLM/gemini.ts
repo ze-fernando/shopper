@@ -1,11 +1,9 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { GoogleAIFileManager } from "@google/generative-ai/server";
-import { PrismaClient, Measure } from "@prisma/client";
 import { v4 as uuidv4 } from 'uuid';
 
 import { IResponse, IRequest } from "../interfaces/Iupload";
-
-const prisma = new PrismaClient();
+import prisma from '../dbConfig/prisma';
 
 //const measureDB: Measure;
 
