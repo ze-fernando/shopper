@@ -1,8 +1,7 @@
 import { Router, Request, Response } from "express";
-import * as fs from 'fs';
 
 import isDoubleReport from "../utlis/validBody";
-import sendImg from "../LLM/gemini";
+import sendImg from "../LLM/gen-ai";
 import { IRequest, IResponse } from "../interfaces/Iupload";
 
 export default async function uploadController(req: Request, res: Response){
@@ -24,7 +23,7 @@ export default async function uploadController(req: Request, res: Response){
             });
         }
 
-        if(isDoubleReport(measure_datetime)){
+        if(await isDoubleReport(measure_datetime)){
             res.status(409).json({
                 error_code: "DOUBLE REPORT",
                 error_description: "Leitura do mês já realizada"
@@ -38,13 +37,7 @@ export default async function uploadController(req: Request, res: Response){
             measure_type: measure_type
         };
 
-        const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
-
-        const imageBuffer = Buffer.from(base64Data, 'base64');
-        const imagePath = `uploads/${Date.now()}.jpg`; 
-        await fs.writeFileSync(imagePath, imageBuffer);
-
-        const response: IResponse = await sendImg(measure, imagePath);
+        const response: IResponse = await sendImg(measure, image);
 
         return res.status(200).json(response);
 }
