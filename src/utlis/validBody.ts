@@ -1,4 +1,14 @@
-export default function isDoubleReport(date: Date){
-    // implementar verificação
+import prisma from "../dbConfig/prisma";
+
+export default async function isDoubleReport(date: Date){
+    const dateDb = await prisma.measure.findUnique({
+        where: {
+            datetime: date
+        }
+    });
+
+ if (dateDb){
+        return true;
+    }
     return false;
 }
