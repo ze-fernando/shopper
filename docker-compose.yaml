@@ -1,24 +1,25 @@
 version: '3.8'
 services:
-# app:
-#    build: .
-#    ports:
-#      - "3000:3000"
-#    environment:
-#      - NODE_ENV=production
-#      - GEMINI_API_KEY=${GEMINI_API_KEY}
-#    volumes:
-#      - .:/app
-#      - /app/node_modules
-#    depends_on:
-#      - db
-#
+  app:
+    build: .
+    container_name: shopper-app
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - GEMINI_API_KEY=${GEMINI_API_KEY}
+    volumes:
+      - .:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+
   postgres:
     image: postgres:13
-    container_name: postgresprisma
+    container_name: shopper-db
     restart: always
     ports:
-      - 5432:5432
+      - "5432:5432"
     env_file:
       - .env
     volumes:
