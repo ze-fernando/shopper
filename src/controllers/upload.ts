@@ -1,5 +1,6 @@
 import { Router, Request, Response } from "express";
 
+import fs from 'fs';
 import isDoubleReport from "../utlis/validBody";
 import sendImg from "../LLM/gen-ai";
 import { IRequest, IResponse } from "../interfaces/Iupload";
@@ -30,6 +31,14 @@ export default async function uploadController(req: Request, res: Response) {
     }
 
     try {
+
+        const base64Data = image.replace(/^data:image\/\w+;base64,/, "");
+        
+
+        const imageBuffer = Buffer.from(base64Data, 'base64');
+        const imagePath = `uploads/${Date.now()}.jpg`;
+        await fs.writeFileSync(imagePath, imageBuffer);
+
         const measure: IRequest = {
             image: image,
             customer_code: costumer_code,
@@ -37,11 +46,13 @@ export default async function uploadController(req: Request, res: Response) {
             measure_type: measure_type
         };
 
-        const response: IResponse = await sendImg(measure, image);
+
+        const response = await sendImg(measure, imagePath);
 
         return res.status(200).json(response);
 
     } catch (error) {
+        console.log(error)
         return res.status(500).json({
             error_code: "UPLOAD_ERROR",
             error_description: `Ocorreu um erro ao processar a leitura: ${error}`

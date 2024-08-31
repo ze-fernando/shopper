@@ -1,10 +1,21 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
-
+import fs from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 
 import { IResponse, IRequest } from "../interfaces/Iupload";
 import prisma from '../dbConfig/prisma';
 import { fileManagerAI } from "./fileManager";
+
+
+function fileToGenerativePart(path: string, mimeType: string) {
+    return {
+      inlineData: {
+        data: Buffer.from(fs.readFileSync(path)).toString("base64"),
+        mimeType
+      },
+    };
+  }
+
 
 export default async function sendImg(measure: IRequest, image64: string): Promise<IResponse>{    
     try {        
@@ -14,18 +25,12 @@ export default async function sendImg(measure: IRequest, image64: string): Promi
 
         const model = gemini.getGenerativeModel({
             model: "gemini-1.5-pro",
-        });
+        });     
+
+        const img = fileToGenerativePart(image64, 'image/jpg');
+        const prompt = "Return the consumption number of a reading";
         
-        
-        const result = await model.generateContent([
-            {
-                fileData: {
-                    mimeType: getResponse.mimeType,
-                    fileUri: getResponse.uri
-                }
-            },
-            { text: "mostre-me um numero de 0 a 10" }, //Return the consumption number of a reading
-        ]);
+        const result = await model.generateContent([prompt, img]);    
 
         if (!result.response || !result.response.text) {
             throw new Error("Invalid response from Gemini API.");
@@ -53,7 +58,8 @@ export default async function sendImg(measure: IRequest, image64: string): Promi
         };
 
     } catch (error) {
-        throw new Error(`Erro ao processar a leitura do medidor ${error}.`);
+        console.log(error)
+        throw new Error(`${error}`);
     } finally {
         await prisma.$disconnect();
     }
